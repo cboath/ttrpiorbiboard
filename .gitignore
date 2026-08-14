@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Claude
+claude/
+
+# orbiboard: local secrets/state, never commit
+.env
+state/
+config/modules.yaml
+*.pyc
+

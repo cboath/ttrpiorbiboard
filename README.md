@@ -1,1 +1,101 @@
 # ttrpiorbiboard
+
+A desk-mounted, always-on Raspberry Pi 4 dashboard: each data "module"
+(Claude Code usage, local weather, and more later) renders to its own
+1.28" round GC9A01 SPI display. Displays share one SPI bus and are
+distinguished by software-toggled CS pins, so new modules are pure
+software additions once spare CS lines are wired.
+
+Full requirements: [`PRD.md`](PRD.md).
+
+## Architecture
+
+- **Module workers** (`orbiboard/modules/*.py`, one systemd unit each) —
+  fetch data on their own schedule, render a 240×240 Pillow frame, write it
+  as RGB565 bytes to a shared tmpfs frame file. No SPI/GPIO access, so a
+  crash or hang in one module can't affect another.
+- **Display server** (`orbiboard/display/server.py`, single instance) — the
+  only process that touches SPI/GPIO. Watches each module's frame file and
+  pushes new bytes to the matching panel. Kept deliberately tiny since it's
+  the one thing that must never crash.
+- **systemd is the supervisor** — `Restart=on-failure` per module unit,
+  `Restart=always` for the display server. No custom orchestrator process.
+
+See [`docs/ADDING_A_MODULE.md`](docs/ADDING_A_MODULE.md) for how the two
+launch modules were built and how to add a new one, and
+[`docs/WIRING.md`](docs/WIRING.md) for the pin table.
+
+## Hardware
+
+Raspberry Pi 4, 6 GC9A01 round SPI displays wired on one bus (2 wired at
+launch: weather + Claude usage; 4 spare CS lines reserved). See
+`docs/WIRING.md` for the full pin table and bring-up steps.
+
+## Setup (on the Pi)
+
+```shell
+sudo raspi-config   # Interfacing Options -> SPI -> Enable
+
+sudo apt update
+sudo apt install -y python3-pip python3-pil git \
+    python3-gpiozero python3-lgpio python3-spidev
+# (Bookworm's system Python rejects `pip install` for GPIO/SPI packages —
+# install those via apt, everything else via pip.)
+
+git clone <this repo> ttrpiorbiboard
+cd ttrpiorbiboard
+pip3 install -r requirements.txt --break-system-packages   # or use a venv
+
+cp config/modules.example.yaml config/modules.yaml
+# edit config/modules.yaml if your wiring differs from docs/WIRING.md
+```
+
+**Hardware bring-up** (do this before anything else — validates wiring and
+the GC9A01 driver together):
+
+```shell
+python3 scripts/test_display.py
+```
+
+**Claude usage — one-time login** (PRD open question #1; run once, from the
+Pi if it has a browser, or from any machine and copy
+`state/claude_creds.json` onto the Pi afterwards):
+
+```shell
+python3 scripts/claude_auth_setup.py
+```
+
+**Run it:**
+
+```shell
+sudo cp systemd/orbiboard-display.service systemd/orbiboard-module@.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now orbiboard-display
+sudo systemctl enable --now orbiboard-module@weather
+sudo systemctl enable --now orbiboard-module@claude_usage
+```
+
+Both `systemd/*.service` files have `User=`/`WorkingDirectory=` placeholders
+— edit them to match where you cloned the repo and which user has
+`spi`/`gpio` group membership before copying them in.
+
+## Developing without a Pi
+
+Module fetch/render logic has no hardware dependency and can be iterated on
+anywhere:
+
+```shell
+pip3 install -r requirements.txt   # spidev/gpiozero/lgpio will fail to
+                                    # import off-Pi, but nothing outside
+                                    # orbiboard/display/ needs them
+python3 scripts/sim_preview.py --module weather
+python3 scripts/sim_preview.py --module claude_usage
+```
+
+Saves a PNG per module to `state/previews/` instead of pushing to SPI.
+
+## Adding a module
+
+See [`docs/ADDING_A_MODULE.md`](docs/ADDING_A_MODULE.md) — write one file,
+add one config entry, enable one systemd unit. No wiring, no changes to
+existing modules.

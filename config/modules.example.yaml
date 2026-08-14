@@ -1,0 +1,52 @@
+# Pi Dashboard module/display map.
+#
+# Copy this file to modules.yaml (gitignored) and edit as needed — modules.yaml
+# is the real, machine-specific config; this file is the tracked template.
+#
+# Lines shared by every physical display (wired identically, one bus):
+display_bus:
+  spi_bus: 0            # /dev/spidev0.<device> — device index below is ignored,
+  spi_device: 0          # we never use hardware CS; every display's CS is a plain
+                          # software-toggled GPIO listed per-module below.
+  dc_pin: 24              # BCM GPIO, shared Data/Command line
+  rst_pin: 25              # BCM GPIO, shared Reset line
+  width: 240
+  height: 240
+  spi_speed_hz: 40000000
+
+# One entry per module. `cs_pin` must be unique across all entries (including
+# reserved/disabled ones you plan to wire later) — see docs/WIRING.md for the
+# full pin table and rationale for the choices below.
+modules:
+  weather:
+    enabled: true
+    cs_pin: 5
+    refresh_interval_sec: 900        # 15 min
+    params:
+      # Default: zip 63043 (Maryland Heights, MO). Override lat/lon for a
+      # different location — Open-Meteo needs no API key.
+      latitude: 38.7229
+      longitude: -90.4474
+
+  claude_usage:
+    enabled: true
+    cs_pin: 6
+    refresh_interval_sec: 600        # 10 min
+
+  # --- Reserved slots -------------------------------------------------
+  # Spare CS pins wired at build time (per PRD "provision for 4-6 displays
+  # now") so future modules (calendar, system stats, crypto, RSS, ...) are
+  # pure software additions: write orbiboard/modules/<id>.py, uncomment/add
+  # an entry here, `systemctl enable --now orbiboard-module@<id>`. No rewiring.
+  # reserved_1:
+  #   enabled: false
+  #   cs_pin: 13
+  # reserved_2:
+  #   enabled: false
+  #   cs_pin: 16
+  # reserved_3:
+  #   enabled: false
+  #   cs_pin: 19
+  # reserved_4:
+  #   enabled: false
+  #   cs_pin: 26

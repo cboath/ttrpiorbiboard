@@ -1,0 +1,17 @@
+[Unit]
+Description=orbiboard module worker: %i
+After=network-online.target orbiboard-display.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/ttrpiorbiboard
+ExecStart=/usr/bin/python3 -m orbiboard.modules.runner --module %i
+Restart=on-failure
+RestartSec=5
+# Crashed fetch/render logic here can never affect other modules or the
+# display server — that's the whole point of one unit instance per module.
+
+[Install]
+WantedBy=multi-user.target

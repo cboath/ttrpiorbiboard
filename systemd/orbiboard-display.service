@@ -1,0 +1,19 @@
+[Unit]
+Description=orbiboard SPI display server (owns the shared bus)
+After=multi-user.target
+
+[Service]
+Type=simple
+# Adjust to wherever you clone the repo and which user has spi/gpio group
+# membership (on Raspberry Pi OS, the default `pi` user already does).
+User=pi
+WorkingDirectory=/home/pi/ttrpiorbiboard
+ExecStart=/usr/bin/python3 -m orbiboard.display.server
+Restart=always
+RestartSec=3
+# tmpfs directory shared with orbiboard-module@*.service for frame handoff.
+RuntimeDirectory=orbiboard
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
