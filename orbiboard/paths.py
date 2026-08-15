@@ -4,6 +4,8 @@ import os
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 CONFIG_FILE = os.path.join(REPO_ROOT, "config", "modules.yaml")
 CONFIG_EXAMPLE_FILE = os.path.join(REPO_ROOT, "config", "modules.example.yaml")
+STOCKS_FILE = os.path.join(REPO_ROOT, "config", "stocks.yaml")
+STOCKS_EXAMPLE_FILE = os.path.join(REPO_ROOT, "config", "stocks.example.yaml")
 ASSETS_DIR = os.path.join(REPO_ROOT, "assets")
 FONT_DIR = os.path.join(ASSETS_DIR, "fonts")
 ICON_DIR = os.path.join(ASSETS_DIR, "icons")

@@ -51,14 +51,18 @@ modules:
       # account and cache a token in state/bambu_cloud_creds.json.
       # region: us        # "us" or "cn", picks the cloud MQTT broker
 
+  stocks:
+    enabled: false        # flip on once wired + config/stocks.yaml is filled in
+    cs_pin: 16             # was reserved_2 — see docs/WIRING.md
+    refresh_interval_sec: 3        # drives on-screen cycling, not network calls
+    # params: {} — holdings live in config/stocks.yaml, not here (see
+    # config/stocks.example.yaml to set up your positions).
+
   # --- Reserved slots -------------------------------------------------
   # Spare CS pins wired at build time (per PRD "provision for 4-6 displays
   # now") so future modules (calendar, system stats, crypto, RSS, ...) are
   # pure software additions: write orbiboard/modules/<id>.py, uncomment/add
   # an entry here, `systemctl enable --now orbiboard-module@<id>`. No rewiring.
-  # reserved_2:
-  #   enabled: false
-  #   cs_pin: 16
   # reserved_3:
   #   enabled: false
   #   cs_pin: 19

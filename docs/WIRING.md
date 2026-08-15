@@ -30,7 +30,7 @@ Chosen to avoid SPI0's own pins (GPIO7-11), I2C (GPIO2/3), and UART
 | `weather` | GPIO5 | 29 | wired at launch |
 | `claude_usage` | GPIO6 | 31 | wired at launch |
 | `bambu_printer` | GPIO13 | 33 | spare, wire when needed |
-| `reserved_2` | GPIO16 | 36 | spare |
+| `stocks` | GPIO16 | 36 | spare, wire when needed |
 | `reserved_3` | GPIO19 | 35 | spare |
 | `reserved_4` | GPIO26 | 37 | spare |
 

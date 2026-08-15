@@ -1,0 +1,20 @@
+# Stock holdings for the `stocks` module.
+#
+# Copy this file to config/stocks.yaml (gitignored — this holds real position
+# sizes, so it's treated like a secret) and fill in your real numbers:
+#
+#   cp config/stocks.example.yaml config/stocks.yaml
+#
+# The module cycles through these on-screen, one every 3 seconds, showing
+# the live price (fetched from Yahoo Finance, no API key) colored green/red
+# against `purchase_price`, plus current position value (shares * live
+# price — not stored here, always computed fresh). Nothing here needs
+# upkeep except when you buy or sell.
+holdings:
+  - symbol: AAPL
+    shares: 10
+    purchase_price: 150.00     # cost basis, per share, at purchase
+
+  - symbol: MSFT
+    shares: 5
+    purchase_price: 300.00

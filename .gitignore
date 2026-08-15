@@ -224,5 +224,6 @@ claude/
 .env
 state/
 config/modules.yaml
+config/stocks.yaml
 *.pyc
 
