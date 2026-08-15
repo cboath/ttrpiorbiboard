@@ -6,8 +6,8 @@ After=multi-user.target
 Type=simple
 # Adjust to wherever you clone the repo and which user has spi/gpio group
 # membership (on Raspberry Pi OS, the default `pi` user already does).
-User=pi
-WorkingDirectory=/home/pi/ttrpiorbiboard
+User=ttr
+WorkingDirectory=/home/ttr/ttrpiorbiboard
 ExecStart=/usr/bin/python3 -m orbiboard.display.server
 Restart=always
 RestartSec=3

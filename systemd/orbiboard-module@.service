@@ -5,8 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/ttrpiorbiboard
+User=ttr
+WorkingDirectory=/home/ttr/ttrpiorbiboard
 ExecStart=/usr/bin/python3 -m orbiboard.modules.runner --module %i
 Restart=on-failure
 RestartSec=5
