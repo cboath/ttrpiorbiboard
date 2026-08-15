@@ -58,14 +58,18 @@ modules:
     # params: {} — holdings live in config/stocks.yaml, not here (see
     # config/stocks.example.yaml to set up your positions).
 
+  clock:
+    enabled: false        # flip on once wired
+    cs_pin: 19             # was reserved_3 — see docs/WIRING.md
+    refresh_interval_sec: 20
+    params:
+      format_24h: false        # true for 24-hour time instead of AM/PM
+
   # --- Reserved slots -------------------------------------------------
   # Spare CS pins wired at build time (per PRD "provision for 4-6 displays
   # now") so future modules (calendar, system stats, crypto, RSS, ...) are
   # pure software additions: write orbiboard/modules/<id>.py, uncomment/add
   # an entry here, `systemctl enable --now orbiboard-module@<id>`. No rewiring.
-  # reserved_3:
-  #   enabled: false
-  #   cs_pin: 19
   # reserved_4:
   #   enabled: false
   #   cs_pin: 26

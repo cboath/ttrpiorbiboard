@@ -31,7 +31,7 @@ Chosen to avoid SPI0's own pins (GPIO7-11), I2C (GPIO2/3), and UART
 | `claude_usage` | GPIO6 | 31 | wired at launch |
 | `bambu_printer` | GPIO13 | 33 | spare, wire when needed |
 | `stocks` | GPIO16 | 36 | spare, wire when needed |
-| `reserved_3` | GPIO19 | 35 | spare |
+| `clock` | GPIO19 | 35 | spare, wire when needed |
 | `reserved_4` | GPIO26 | 37 | spare |
 
 **Before wiring:** double-check none of these BCM pins are already claimed
