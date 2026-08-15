@@ -33,14 +33,23 @@ modules:
     cs_pin: 6
     refresh_interval_sec: 600        # 10 min
 
+  bambu_printer:
+    enabled: false        # flip on once wired + params below are filled in
+    cs_pin: 13             # was reserved_1 — see docs/WIRING.md
+    refresh_interval_sec: 30        # print progress moves faster than weather/usage
+    params:
+      # LAN-only mode must be enabled on the printer. ip/serial from the
+      # printer's screen (Settings > Network / Device); access_code from
+      # Settings > Network as well. No cloud account involved.
+      ip: ""
+      access_code: ""
+      serial: ""
+
   # --- Reserved slots -------------------------------------------------
   # Spare CS pins wired at build time (per PRD "provision for 4-6 displays
   # now") so future modules (calendar, system stats, crypto, RSS, ...) are
   # pure software additions: write orbiboard/modules/<id>.py, uncomment/add
   # an entry here, `systemctl enable --now orbiboard-module@<id>`. No rewiring.
-  # reserved_1:
-  #   enabled: false
-  #   cs_pin: 13
   # reserved_2:
   #   enabled: false
   #   cs_pin: 16

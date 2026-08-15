@@ -4,3 +4,4 @@ PyYAML>=6.0
 spidev>=3.6
 gpiozero>=2.0
 lgpio>=0.2
+bambulabs-api>=2.0
