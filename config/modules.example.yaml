@@ -38,12 +38,18 @@ modules:
     cs_pin: 13             # was reserved_1 — see docs/WIRING.md
     refresh_interval_sec: 30        # print progress moves faster than weather/usage
     params:
-      # LAN-only mode must be enabled on the printer. ip/serial from the
-      # printer's screen (Settings > Network / Device); access_code from
-      # Settings > Network as well. No cloud account involved.
+      mode: lan        # "lan" (default) or "cloud" — see orbiboard/modules/bambu_printer.py
+      serial: ""        # printer serial either way (Settings > Device)
+
+      # --- mode: lan --- LAN-only mode must be enabled on the printer.
+      # ip/access_code from the printer's screen (Settings > Network).
       ip: ""
       access_code: ""
-      serial: ""
+
+      # --- mode: cloud --- no ip/access_code needed. Run
+      # scripts/bambu_cloud_auth_setup.py once first to log into your Bambu
+      # account and cache a token in state/bambu_cloud_creds.json.
+      # region: us        # "us" or "cn", picks the cloud MQTT broker
 
   # --- Reserved slots -------------------------------------------------
   # Spare CS pins wired at build time (per PRD "provision for 4-6 displays
