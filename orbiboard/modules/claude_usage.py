@@ -18,16 +18,41 @@ import json
 import os
 import time
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from orbiboard.modules.base import Module
 from orbiboard.net import net
 from orbiboard.paths import STATE_DIR
 from orbiboard.render_utils import (
-    FG, MUTED, ACCENT, WARN,
+    FG, MUTED, ACCENT, WARN, WIDTH, HEIGHT,
     new_canvas, load_font, draw_ring, draw_centered_text, draw_stale_badge,
     text_size, time_until,
 )
+
+CLAUDE_ORANGE = (218, 119, 86)
+
+
+def _claude_mark(size, color, alpha):
+    """Procedural sunburst/spark mark echoing Claude's brand icon, for use
+    as a faint watermark behind the module's usage rings."""
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    cx = cy = size / 2
+    n_rays = 8
+    long_len = size * 0.48
+    short_len = size * 0.30
+    ray_w = size * 0.11
+    for i in range(n_rays):
+        angle = i * (360 / n_rays)
+        ray_len = long_len if i % 2 == 0 else short_len
+        layer = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        ImageDraw.Draw(layer).ellipse(
+            (cx, cy - ray_w / 2, cx + ray_len, cy + ray_w / 2),
+            fill=(*color, alpha),
+        )
+        img = Image.alpha_composite(img, layer.rotate(-angle, center=(cx, cy), resample=Image.BICUBIC))
+    hub_r = ray_w * 0.6
+    ImageDraw.Draw(img).ellipse((cx - hub_r, cy - hub_r, cx + hub_r, cy + hub_r), fill=(*color, alpha))
+    return img
 
 CREDENTIALS_FILE = os.path.join(STATE_DIR, "claude_creds.json")
 TOKEN_URL = "https://platform.claude.com/v1/oauth/token"
@@ -130,10 +155,13 @@ class ClaudeUsageModule(Module):
         f_pct = load_font(30)
         f_small = load_font(13)
 
+        mark = _claude_mark(220, CLAUDE_ORANGE, alpha=50)
+        canvas.paste(mark, ((WIDTH - mark.width) // 2, (HEIGHT - mark.height) // 2), mark)
+
         if not data or "five_hour" not in data:
             draw_centered_text(draw, 120, 90, "Claude usage", f_title, fill=MUTED)
             draw_centered_text(draw, 120, 120, "not configured", load_font(16), fill=WARN)
-            return canvas
+            return canvas.rotate(180)
 
         five = data["five_hour"]
         seven = data["seven_day"]
@@ -158,7 +186,7 @@ class ClaudeUsageModule(Module):
 
         if stale:
             draw_stale_badge(draw)
-        return canvas
+        return canvas.rotate(180)
 
 
 MODULE = ClaudeUsageModule()
