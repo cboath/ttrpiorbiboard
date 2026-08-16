@@ -17,17 +17,30 @@ shows the last-known values with a stale badge until it's fixed.
 import json
 import os
 import time
+from functools import lru_cache
 
 from PIL import Image
 
 from orbiboard.modules.base import Module
 from orbiboard.net import net
-from orbiboard.paths import STATE_DIR
+from orbiboard.paths import ICON_DIR, STATE_DIR
 from orbiboard.render_utils import (
-    FG, MUTED, ACCENT, WARN,
+    FG, MUTED, ACCENT, WARN, WIDTH, HEIGHT,
     new_canvas, load_font, draw_ring, draw_centered_text, draw_stale_badge,
     text_size, time_until,
 )
+
+CLAUDE_LOGO_FILE = os.path.join(ICON_DIR, "claude-logo.png")
+
+
+@lru_cache(maxsize=8)
+def _claude_mark(size, alpha):
+    """Claude logo, scaled and faded, for use as a watermark behind the
+    module's usage rings."""
+    logo = Image.open(CLAUDE_LOGO_FILE).convert("RGBA").resize((size, size), Image.LANCZOS)
+    a = logo.getchannel("A")
+    logo.putalpha(a.point(lambda p: p * alpha // 255))
+    return logo
 
 CREDENTIALS_FILE = os.path.join(STATE_DIR, "claude_creds.json")
 TOKEN_URL = "https://platform.claude.com/v1/oauth/token"
@@ -130,10 +143,13 @@ class ClaudeUsageModule(Module):
         f_pct = load_font(30)
         f_small = load_font(13)
 
+        mark = _claude_mark(220, 50)
+        canvas.paste(mark, ((WIDTH - mark.width) // 2, (HEIGHT - mark.height) // 2), mark)
+
         if not data or "five_hour" not in data:
             draw_centered_text(draw, 120, 90, "Claude usage", f_title, fill=MUTED)
             draw_centered_text(draw, 120, 120, "not configured", load_font(16), fill=WARN)
-            return canvas
+            return canvas.rotate(180)
 
         five = data["five_hour"]
         seven = data["seven_day"]
@@ -158,7 +174,7 @@ class ClaudeUsageModule(Module):
 
         if stale:
             draw_stale_badge(draw)
-        return canvas
+        return canvas.rotate(180)
 
 
 MODULE = ClaudeUsageModule()
