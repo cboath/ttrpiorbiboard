@@ -38,11 +38,10 @@ def build_panels(cfg):
     bus = cfg["display_bus"]
 
     # DC/RST are one shared physical line across every panel (see
-    # docs/WIRING.md) — one device each, reset once, then reused for every
-    # panel below. Only CS is unique per panel.
+    # docs/WIRING.md) — one device each, reused for every panel below.
+    # Only CS is unique per panel.
     dc_device = DigitalOutputDevice(bus["dc_pin"], initial_value=False)
     rst_device = DigitalOutputDevice(bus["rst_pin"], initial_value=True)
-    reset_bus(rst_device)
 
     panels = {}
     for module_id, mod_cfg in enabled_modules(cfg).items():
@@ -56,7 +55,15 @@ def build_panels(cfg):
             width=bus.get("width", 240),
             height=bus.get("height", 240),
         )
-        log.info("opened panel for module=%s cs_pin=%s", module_id, mod_cfg["cs_pin"])
+        log.info("claimed CS for module=%s cs_pin=%s", module_id, mod_cfg["cs_pin"])
+
+    # Every panel's CS is now claimed and driven high (deselected) — only
+    # now is it safe to pulse the shared RST line and run each panel's own
+    # init sequence in turn (see GC9A01.__init__ for why order matters).
+    reset_bus(rst_device)
+    for module_id, panel in panels.items():
+        panel.init_panel()
+        log.info("initialized panel for module=%s", module_id)
     return panels
 
 

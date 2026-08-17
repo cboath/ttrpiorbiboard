@@ -42,18 +42,34 @@ def main():
     pattern = checkerboard(width, height)
 
     # DC/RST are shared across every panel (see docs/WIRING.md) — one
-    # device each, reset once up front, reused for every panel below.
+    # device each, reused for every panel below.
     dc_device = DigitalOutputDevice(bus["dc_pin"], initial_value=False)
     rst_device = DigitalOutputDevice(bus["rst_pin"], initial_value=True)
-    reset_bus(rst_device)
 
+    # Phase 1: construct every panel first, so every CS line is claimed and
+    # driven high (deselected) before any SPI traffic happens. A panel built
+    # (or tested) before its siblings exist would leave their CS pins
+    # floating, and a floating CS can drift low and eavesdrop on/react to
+    # traffic meant for another panel.
+    panels = {}
+    cs_pins = {}
     for module_id, mod_cfg in enabled_modules(cfg).items():
-        print(f"--- {module_id} (cs_pin={mod_cfg['cs_pin']}) ---")
-        panel = GC9A01(
+        cs_pins[module_id] = mod_cfg["cs_pin"]
+        panels[module_id] = GC9A01(
             spi_bus=bus["spi_bus"], spi_device=bus["spi_device"],
             cs_pin=mod_cfg["cs_pin"], dc_device=dc_device, rst_device=rst_device,
             speed_hz=bus.get("spi_speed_hz", 40_000_000), width=width, height=height,
         )
+
+    # Phase 2: reset the shared bus once, then init each panel in turn.
+    reset_bus(rst_device)
+    for panel in panels.values():
+        panel.init_panel()
+
+    # Phase 3: now that every panel is initialized and idle (CS high except
+    # during its own transfers below), it's safe to test them one at a time.
+    for module_id, panel in panels.items():
+        print(f"--- {module_id} (cs_pin={cs_pins[module_id]}) ---")
         for name, color in (("red", RED), ("green", GREEN), ("blue", BLUE)):
             print(f"  fill {name}")
             panel.fill(color)

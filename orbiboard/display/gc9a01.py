@@ -115,6 +115,17 @@ class GC9A01:
         # each transfer is wrapped in explicit software CS below.
         self._spi.no_cs = True
 
+        # Deliberately does NOT run the init sequence here. self._cs above
+        # is now driven high (deselected), but a sibling panel constructed
+        # after this one won't have claimed its own CS pin yet — until it
+        # does, that pin is unclaimed/floating and can drift low (selected),
+        # which would make it eavesdrop on and react to this panel's init
+        # bytes on the shared MOSI/DC lines as if they were its own. The
+        # caller must construct every panel on the bus first (so every CS
+        # line is driven high), call reset_bus() once, and only then call
+        # init_panel() on each — see build_panels() in display/server.py.
+
+    def init_panel(self):
         self._run_init_sequence()
 
     def _write(self, data, is_data):
