@@ -77,15 +77,35 @@ _INIT_SEQUENCE = [
 ]
 
 
+def reset_bus(rst_device):
+    """Pulse the shared hardware RST line once for the whole bus.
+
+    RST is wired identically to every panel (see docs/WIRING.md), so this
+    must be called exactly once before initializing any panel. Pulsing it
+    per-panel would also hardware-reset every already-initialized panel
+    sharing the same line, wiping out their init sequence.
+    """
+    rst_device.off()
+    time.sleep(0.02)
+    rst_device.on()
+    time.sleep(0.12)
+
+
 class GC9A01:
-    def __init__(self, spi_bus, spi_device, cs_pin, dc_pin, rst_pin,
+    def __init__(self, spi_bus, spi_device, cs_pin, dc_device, rst_device,
                  speed_hz=40_000_000, width=WIDTH, height=HEIGHT):
         self.width = width
         self.height = height
 
+        # CS is the only line unique per panel. DC/RST are shared physical
+        # lines across every panel on the bus (see docs/WIRING.md) — the
+        # caller constructs one DigitalOutputDevice for each and passes them
+        # in here, shared across all panels. Constructing our own per panel
+        # would collide over the same GPIO pin as soon as a second panel
+        # exists.
         self._cs = DigitalOutputDevice(cs_pin, initial_value=True)
-        self._dc = DigitalOutputDevice(dc_pin, initial_value=False)
-        self._rst = DigitalOutputDevice(rst_pin, initial_value=True)
+        self._dc = dc_device
+        self._rst = rst_device
 
         self._spi = spidev.SpiDev()
         self._spi.open(spi_bus, spi_device)
@@ -95,14 +115,7 @@ class GC9A01:
         # each transfer is wrapped in explicit software CS below.
         self._spi.no_cs = True
 
-        self._reset()
         self._run_init_sequence()
-
-    def _reset(self):
-        self._rst.off()
-        time.sleep(0.02)
-        self._rst.on()
-        time.sleep(0.12)
 
     def _write(self, data, is_data):
         self._dc.value = is_data
@@ -151,9 +164,9 @@ class GC9A01:
         self.blit(rgb565_pixel * (self.width * self.height))
 
     def close(self):
+        """Closes this panel's own CS device and SPI fd only — dc/rst are
+        shared across every panel on the bus and owned by the caller."""
         try:
             self._spi.close()
         finally:
             self._cs.close()
-            self._dc.close()
-            self._rst.close()

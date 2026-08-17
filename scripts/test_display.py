@@ -14,9 +14,11 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
+from gpiozero import DigitalOutputDevice
+
 from orbiboard.config import load_config, enabled_modules
 from orbiboard.display.gpio import configure_lgpio_backend
-from orbiboard.display.gc9a01 import GC9A01
+from orbiboard.display.gc9a01 import GC9A01, reset_bus
 
 RED = bytes([0xF8, 0x00])
 GREEN = bytes([0x07, 0xE0])
@@ -39,11 +41,17 @@ def main():
     width, height = bus.get("width", 240), bus.get("height", 240)
     pattern = checkerboard(width, height)
 
+    # DC/RST are shared across every panel (see docs/WIRING.md) — one
+    # device each, reset once up front, reused for every panel below.
+    dc_device = DigitalOutputDevice(bus["dc_pin"], initial_value=False)
+    rst_device = DigitalOutputDevice(bus["rst_pin"], initial_value=True)
+    reset_bus(rst_device)
+
     for module_id, mod_cfg in enabled_modules(cfg).items():
         print(f"--- {module_id} (cs_pin={mod_cfg['cs_pin']}) ---")
         panel = GC9A01(
             spi_bus=bus["spi_bus"], spi_device=bus["spi_device"],
-            cs_pin=mod_cfg["cs_pin"], dc_pin=bus["dc_pin"], rst_pin=bus["rst_pin"],
+            cs_pin=mod_cfg["cs_pin"], dc_device=dc_device, rst_device=rst_device,
             speed_hz=bus.get("spi_speed_hz", 40_000_000), width=width, height=height,
         )
         for name, color in (("red", RED), ("green", GREEN), ("blue", BLUE)):
@@ -55,6 +63,9 @@ def main():
         time.sleep(2)
         panel.close()
         print(f"  {module_id}: done — confirm colors/orientation look right\n")
+
+    dc_device.close()
+    rst_device.close()
 
 
 if __name__ == "__main__":

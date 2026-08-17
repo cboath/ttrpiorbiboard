@@ -17,9 +17,11 @@ import logging
 import os
 import time
 
+from gpiozero import DigitalOutputDevice
+
 from orbiboard.config import load_config, enabled_modules
 from orbiboard.display.gpio import configure_lgpio_backend
-from orbiboard.display.gc9a01 import GC9A01
+from orbiboard.display.gc9a01 import GC9A01, reset_bus
 from orbiboard.paths import FRAME_DIR, ensure_state_dirs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -34,14 +36,22 @@ def frame_path(module_id):
 
 def build_panels(cfg):
     bus = cfg["display_bus"]
+
+    # DC/RST are one shared physical line across every panel (see
+    # docs/WIRING.md) — one device each, reset once, then reused for every
+    # panel below. Only CS is unique per panel.
+    dc_device = DigitalOutputDevice(bus["dc_pin"], initial_value=False)
+    rst_device = DigitalOutputDevice(bus["rst_pin"], initial_value=True)
+    reset_bus(rst_device)
+
     panels = {}
     for module_id, mod_cfg in enabled_modules(cfg).items():
         panels[module_id] = GC9A01(
             spi_bus=bus["spi_bus"],
             spi_device=bus["spi_device"],
             cs_pin=mod_cfg["cs_pin"],
-            dc_pin=bus["dc_pin"],
-            rst_pin=bus["rst_pin"],
+            dc_device=dc_device,
+            rst_device=rst_device,
             speed_hz=bus.get("spi_speed_hz", 40_000_000),
             width=bus.get("width", 240),
             height=bus.get("height", 240),
