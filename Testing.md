@@ -27,3 +27,6 @@ Then restart them afterward:
 
 
 sudo systemctl start orbiboard-display orbiboard-module@weather orbiboard-module@claude_usage
+
+
+Check sudo systemctl status orbiboard-module@bambu_printer on the Pi first; if it's not running, sudo systemctl enable --now orbiboard-module@bambu_printer should bring the third screen up without touching anything hardware-related.
