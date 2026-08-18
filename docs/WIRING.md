@@ -58,3 +58,23 @@ Pi's own rail, sharing only GND.
    written from the commonly-published register table but not yet tested
    against real hardware — if colors are swapped (R/B) or the image is
    mirrored, check `MADCTL` (0x36) in that file first.
+
+## Known issue: multi-panel signal integrity on breadboard jumpers
+
+With 2 panels sharing the bus over breadboard jumper wires, `spi_speed_hz:
+8000000` was already unreliable — one panel would initialize and blit fine,
+the other would stay blank or show a white screen, with no error raised
+(writes succeed at the SPI level even when the receiving panel doesn't latch
+them correctly). This looked exactly like a bad CS connection at first (and
+a real floating-CS issue was also fixed along the way — every panel's CS
+line needs a pull-up to 3.3V so a momentarily disconnected/loose CS defaults
+to deselected rather than self-selecting), but swapping panels, CS pins, and
+even trying a totally unused spare CS pin (GPIO13) all reproduced the same
+failure. Dropping `spi_speed_hz` to `1000000` (1MHz) fixed it immediately —
+confirming it was bus loading/reflection from 2 panels on the shared
+MOSI/SCK/DC/RST lines, not a bad panel or a bad CS wire.
+
+Expect this to get worse, not better, as more of the 6 provisioned panels
+get wired — re-test at whatever speed is currently configured each time a
+new panel is added, and raise the speed only after confirming all panels
+work together at the lower one.
