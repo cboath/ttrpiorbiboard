@@ -75,6 +75,18 @@ sudo systemctl enable --now orbiboard-module@weather
 sudo systemctl enable --now orbiboard-module@claude_usage
 ```
 
+Every module needs its own `orbiboard-module@<id>` unit enabled — flipping
+`enabled: true` in `config/modules.yaml` only tells the display server to
+claim that panel's CS pin, it does **not** start the process that fetches
+data and renders frames for it. A module with no worker running shows
+nothing on its panel, silently (no error) — the display server just never
+sees a frame file to push. So each time you enable another module (e.g.
+`bambu_printer`, `stocks`, `clock`) in `config/modules.yaml`, also run:
+
+```shell
+sudo systemctl enable --now orbiboard-module@<module_id>
+```
+
 Both `systemd/*.service` files have `User=`/`WorkingDirectory=` placeholders
 — edit them to match where you cloned the repo and which user has
 `spi`/`gpio` group membership before copying them in.

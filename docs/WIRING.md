@@ -28,8 +28,8 @@ Chosen to avoid SPI0's own pins (GPIO7-11), I2C (GPIO2/3), and UART
 | Module (config/modules.yaml key) | CS pin (BCM) | Physical pin | Status |
 |---|---|---|---|
 | `weather` | GPIO5 | 29 | wired at launch |
-| `claude_usage` | GPIO6 | 31 | wired at launch |
-| `bambu_printer` | GPIO13 | 33 | spare, wire when needed |
+| `claude_usage` | GPIO13 | 33 | wired (swapped from GPIO6 during bring-up) |
+| `bambu_printer` | GPIO6 | 31 | wired (swapped from GPIO13 during bring-up) |
 | `stocks` | GPIO16 | 36 | spare, wire when needed |
 | `clock` | GPIO19 | 35 | spare, wire when needed |
 | `reserved_4` | GPIO26 | 37 | spare |
