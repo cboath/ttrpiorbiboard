@@ -12,7 +12,10 @@ display_bus:
   rst_pin: 25              # BCM GPIO, shared Reset line
   width: 240
   height: 240
-  spi_speed_hz: 40000000
+  spi_speed_hz: 1000000  # Start conservative on breadboard jumpers — 8MHz was
+                          # already unreliable with just 2 panels sharing the
+                          # bus (one panel initializes but stays blank/white).
+                          # See docs/WIRING.md "Bring-up" before raising this.
 
 # One entry per module. `cs_pin` must be unique across all entries (including
 # reserved/disabled ones you plan to wire later) — see docs/WIRING.md for the
