@@ -65,6 +65,23 @@ Pi if it has a browser, or from any machine and copy
 python3 scripts/claude_auth_setup.py
 ```
 
+**Bambu printer — one-time setup** (optional module, disabled by default;
+flip `bambu_printer.enabled: true` in `config/modules.yaml` once you've done
+this):
+
+```shell
+# LAN mode (default) — no script needed, just fill in config/modules.yaml:
+#   bambu_printer.params.serial       (printer Settings > Device)
+#   bambu_printer.params.ip           (printer Settings > Network)
+#   bambu_printer.params.access_code  (printer Settings > Network)
+# and make sure LAN-only mode is enabled on the printer.
+
+# Cloud mode (mode: cloud) — run once instead, to cache a token:
+python3 scripts/bambu_cloud_auth_setup.py
+```
+
+See `orbiboard/modules/bambu_printer.py` for the full LAN-vs-cloud tradeoffs.
+
 **Run it:**
 
 ```shell
@@ -73,6 +90,9 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now orbiboard-display
 sudo systemctl enable --now orbiboard-module@weather
 sudo systemctl enable --now orbiboard-module@claude_usage
+# for any other module you've enabled in config/modules.yaml (bambu_printer,
+# stocks, clock, ...), also enable its own worker unit the same way:
+sudo systemctl enable --now orbiboard-module@bambu_printer
 ```
 
 Both `systemd/*.service` files have `User=`/`WorkingDirectory=` placeholders
