@@ -114,8 +114,9 @@ class StocksModule(Module):
 
         gain = gain_pct = None
         if purchase_price:
-            gain = price - purchase_price
-            gain_pct = (gain / purchase_price) * 100
+            gain_per_share = price - purchase_price
+            gain_pct = (gain_per_share / purchase_price) * 100
+            gain = gain_per_share * shares if shares is not None else gain_per_share
 
         total_value = shares * price if shares is not None else None
 
