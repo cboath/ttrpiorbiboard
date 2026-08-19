@@ -54,6 +54,7 @@ def build_panels(cfg):
             speed_hz=bus.get("spi_speed_hz", 40_000_000),
             width=bus.get("width", 240),
             height=bus.get("height", 240),
+            rotate_180=mod_cfg.get("rotate_180", False),
         )
         log.info("claimed CS for module=%s cs_pin=%s", module_id, mod_cfg["cs_pin"])
 

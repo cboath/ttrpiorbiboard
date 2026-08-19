@@ -59,6 +59,7 @@ def main():
             spi_bus=bus["spi_bus"], spi_device=bus["spi_device"],
             cs_pin=mod_cfg["cs_pin"], dc_device=dc_device, rst_device=rst_device,
             speed_hz=bus.get("spi_speed_hz", 40_000_000), width=width, height=height,
+            rotate_180=mod_cfg.get("rotate_180", False),
         )
 
     # Phase 2: reset the shared bus once, then init each panel in turn.

@@ -22,6 +22,9 @@ from gpiozero import DigitalOutputDevice
 WIDTH = 240
 HEIGHT = 240
 
+MADCTL_NORMAL = 0x08      # BGR order, no mirror/rotate
+MADCTL_ROTATE_180 = 0xC8  # BGR order, MY|MX set — flips row+col scan order
+
 # (command, [data bytes], delay_ms_after)
 _INIT_SEQUENCE = [
     (0xEF, [], 0),
@@ -42,7 +45,9 @@ _INIT_SEQUENCE = [
     (0x8E, [0xFF], 0),
     (0x8F, [0xFF], 0),
     (0xB6, [0x00, 0x20], 0),
-    (0x36, [0x08], 0),            # MADCTL: BGR order, no mirror/rotate
+    (0x36, [0x08], 0),            # MADCTL: BGR order, no mirror/rotate — may
+                                   # be overridden after init, see rotate_180
+                                   # in GC9A01.__init__/_run_init_sequence
     (0x3A, [0x05], 0),            # COLMOD: 16 bits/pixel (RGB565)
     (0x90, [0x08, 0x08, 0x08, 0x08], 0),
     (0xBD, [0x06], 0),
@@ -93,9 +98,11 @@ def reset_bus(rst_device):
 
 class GC9A01:
     def __init__(self, spi_bus, spi_device, cs_pin, dc_device, rst_device,
-                 speed_hz=40_000_000, width=WIDTH, height=HEIGHT):
+                 speed_hz=40_000_000, width=WIDTH, height=HEIGHT,
+                 rotate_180=False):
         self.width = width
         self.height = height
+        self._rotate_180 = rotate_180
 
         # CS is the only line unique per panel. DC/RST are shared physical
         # lines across every panel on the bus (see docs/WIRING.md) — the
@@ -146,6 +153,8 @@ class GC9A01:
             self._cmd(cmd, data)
             if delay_ms:
                 time.sleep(delay_ms / 1000.0)
+        if self._rotate_180:
+            self._cmd(0x36, [MADCTL_ROTATE_180])
 
     def _set_window(self, x0, y0, x1, y1):
         self._cmd(0x2A, [x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF])

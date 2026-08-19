@@ -24,6 +24,7 @@ modules:
   weather:
     enabled: true
     cs_pin: 5
+    rotate_180: true        # panel is mounted 180 from claude_usage's orientation
     refresh_interval_sec: 900        # 15 min
     params:
       # Default: zip 63043 (Maryland Heights, MO). Override lat/lon for a
@@ -39,6 +40,7 @@ modules:
   bambu_printer:
     enabled: false        # flip on once wired + params below are filled in
     cs_pin: 13             # was reserved_1 — see docs/WIRING.md
+    rotate_180: true        # panel is mounted 180 from claude_usage's orientation
     refresh_interval_sec: 30        # print progress moves faster than weather/usage
     params:
       mode: lan        # "lan" (default) or "cloud" — see orbiboard/modules/bambu_printer.py
@@ -57,6 +59,7 @@ modules:
   stocks:
     enabled: false        # flip on once wired + config/stocks.yaml is filled in
     cs_pin: 16             # was reserved_2 — see docs/WIRING.md
+    rotate_180: true        # panel is mounted 180 from claude_usage's orientation
     refresh_interval_sec: 3        # drives on-screen cycling, not network calls
     # params: {} — holdings live in config/stocks.yaml, not here (see
     # config/stocks.example.yaml to set up your positions).
@@ -64,6 +67,7 @@ modules:
   clock:
     enabled: false        # flip on once wired
     cs_pin: 19             # was reserved_3 — see docs/WIRING.md
+    rotate_180: true        # panel is mounted 180 from claude_usage's orientation
     refresh_interval_sec: 20
     params:
       format_24h: false        # true for 24-hour time instead of AM/PM
@@ -76,3 +80,4 @@ modules:
   # reserved_4:
   #   enabled: false
   #   cs_pin: 26
+  #   rotate_180: true        # panel is mounted 180 from claude_usage's orientation
